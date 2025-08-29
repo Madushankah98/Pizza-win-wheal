@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Spin Wheel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://images.unsplash.com/photo-1513104890138-7c749659a680') center/cover no-repeat;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            max-width: 100%;
+            width: 600px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #ffffff;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 400;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: clamp(250px, 80vw, 400px);
+            height: clamp(250px, 80vw, 400px);
+            margin: 0 auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 10px solid #ffcc00;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.3);
+            transition: transform 4s cubic-bezier(0.2, 0.8, 0.7, 0.9);
+        }
+
+        .slice {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            top: 0;
+            left: 50%;
+            transform-origin: 0% 100%;
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        }
+
+        .slice:nth-child(1) { transform: rotate(0deg); background: linear-gradient(45deg, #d32f2f, #b71c1c); }
+        .slice:nth-child(2) { transform: rotate(60deg); background: linear-gradient(45deg, #ffcc00, #ffa000); }
+        .slice:nth-child(3) { transform: rotate(120deg); background: linear-gradient(45deg, #2e7d32, #1b5e20); }
+        .slice:nth-child(4) { transform: rotate(180deg); background: linear-gradient(45deg, #d32f2f, #b71c1c); }
+        .slice:nth-child(5) { transform: rotate(240deg); background: linear-gradient(45deg, #ffcc00, #ffa000); }
+        .slice:nth-child(6) { transform: rotate(300deg); background: linear-gradient(45deg, #2e7d32, #1b5e20); }
+
+        .slice-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(30deg);
+            color: #ffffff;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            transform-origin: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #d32f2f;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+            z-index: 3;
+        }
+
+        .spin-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(45deg, #d32f2f, #b71c1c);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .spin-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h3 {
+            color: #d32f2f;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            color: #2e7d32;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 20px;
+        }
+
+        .claim-button {
+            padding: 15px 30px;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(45deg, #d32f2f, #b71c1c);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .claim-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .spin-button, .claim-button {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spin the Pizza Wheel 🍕</h1>
+        <h2>Only 10 free vouchers left today – try your luck now!</h2>
+        <div class="wheel-container">
+            <div class="wheel" id="wheel">
+                <div class="slice"><span class="slice-text">🎉 FREE Pizza Winner</span></div>
+                <div class="slice"><span class="slice-text">❌ Not Eligible</span></div>
+                <div class="slice"><span class="slice-text">😔 Try Again</span></div>
+                <div class="slice"><span class="slice-text">🎉 FREE Pizza Winner</span></div>
+                <div class="slice"><span class="slice-text">❌ Not Eligible</span></div>
+                <div class="slice"><span class="slice-text">😔 Try Again</span></div>
+            </div>
+            <div class="pointer"></div>
+        </div>
+        <button class="spin-button" onclick="spinWheel()">Spin Now!</button>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3>🎉 Congratulations!</h3>
+            <p>You unlocked a FREE Pizza Voucher 🍕</p>
+            <a href="YOUR_CPA_LINK_HERE" class="claim-button">👉 Claim Now</a>
+        </div>
+    </div>
+
+    <script>
+        const wheel = document.getElementById('wheel');
+        const modal = document.getElementById('modal');
+        let isSpinning = false;
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            const spinDegrees = 360 * 5 + 0; // Always lands on first "FREE Pizza Winner" (0 degrees)
+            wheel.style.transform = `rotate(${spinDegrees}deg)`;
+
+            setTimeout(() => {
+                modal.style.display = 'flex';
+                isSpinning = false;
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
